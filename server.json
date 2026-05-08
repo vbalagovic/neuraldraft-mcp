@@ -1,0 +1,44 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.neuraldraft/mcp",
+  "title": "Neural Draft",
+  "description": "MCP server exposing Neural Draft (CMS, blog, social, booking, commerce) to Claude Code, Cursor, Continue, and other AI coding tools. Make AI-built sites editable, multi-language, and content-managed by default.",
+  "websiteUrl": "https://neuraldraft.io",
+  "repository": {
+    "url": "https://github.com/neuraldraft/mcp",
+    "source": "github"
+  },
+  "version": "0.1.0",
+  "packages": [
+    {
+      "registryType": "npm",
+      "registryBaseUrl": "https://registry.npmjs.org",
+      "identifier": "@neuraldraft/mcp",
+      "version": "0.1.0",
+      "transport": { "type": "stdio" },
+      "environmentVariables": [
+        {
+          "name": "NEURALDRAFT_API_KEY",
+          "description": "Project API key from your Neural Draft dashboard. Format: ndsk_live_… (production) or ndsk_test_… (test mode). Get one at https://neuraldraft.io/dashboard/api-keys.",
+          "isRequired": true,
+          "isSecret": true
+        },
+        {
+          "name": "NEURALDRAFT_API_URL",
+          "description": "Override the API base URL. Defaults to https://api.neuraldraft.io/v1. Useful for staging or local dev.",
+          "isRequired": false
+        },
+        {
+          "name": "NEURALDRAFT_PROJECT_ID",
+          "description": "Optional project override when one API key spans multiple projects.",
+          "isRequired": false
+        },
+        {
+          "name": "NEURALDRAFT_DISPLAY_NAME",
+          "description": "Optional friendly server name shown in your IDE's MCP list (useful when you run multiple Neural Draft projects in parallel).",
+          "isRequired": false
+        }
+      ]
+    }
+  ]
+}
