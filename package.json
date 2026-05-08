@@ -50,12 +50,11 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/vbalagovic/neuraldraft-sdk.git",
-    "directory": "mcp"
+    "url": "git+https://github.com/vbalagovic/neuraldraft-mcp.git"
   },
-  "homepage": "https://docs.neuraldraft.io/mcp/overview",
+  "homepage": "https://github.com/vbalagovic/neuraldraft-mcp#readme",
   "bugs": {
-    "url": "https://github.com/vbalagovic/neuraldraft-sdk/issues"
+    "url": "https://github.com/vbalagovic/neuraldraft-mcp/issues"
   },
   "author": "Neural Draft <developers@neuraldraft.io>",
   "dependencies": {

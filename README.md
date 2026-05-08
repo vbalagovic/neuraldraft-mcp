@@ -16,7 +16,7 @@
 - create translation keys, kick off blog/image generation, list products, set up booking widgets
 - emit markup that's CMS-managed by default — no manual wiring
 
-[![30-second screencast placeholder](https://placehold.co/640x360/0b0e14/7c3aed?text=Demo+coming+soon)](https://github.com/vbalagovic/neuraldraft-sdk)
+[![30-second screencast placeholder](https://placehold.co/640x360/0b0e14/7c3aed?text=Demo+coming+soon)](https://github.com/vbalagovic/neuraldraft-mcp)
 
 ## Why it exists
 
@@ -201,7 +201,7 @@ Claude: Done. The grid auto-renders your 14 products (real names, prices, images
 ## Local development
 
 ```bash
-git clone https://github.com/vbalagovic/neuraldraft-sdk.git
+git clone https://github.com/vbalagovic/neuraldraft-mcp.git
 cd mcp
 npm install
 npm run lint    # tsc --noEmit
@@ -227,13 +227,13 @@ npx @modelcontextprotocol/inspector node dist/index.js
 
 ## Architecture
 
-This server is a thin wrapper over the Neural Draft Project API v1. Every tool maps to one (or a handful of) REST calls; resources are either constants (schemas, conventions docs) or cached reads (`brand://current`). The full API spec lives at [openapi.yaml](https://github.com/vbalagovic/neuraldraft-sdk/blob/main/openapi.yaml) in the platform repo.
+This server is a thin wrapper over the Neural Draft Project API v1. Every tool maps to one (or a handful of) REST calls; resources are either constants (schemas, conventions docs) or cached reads (`brand://current`). The full API spec lives at [openapi.yaml](https://github.com/vbalagovic/neuraldraft-mcp/blob/main/openapi.yaml) in the platform repo.
 
 Stdio is the only transport in v0.x — every current AI coding tool spawns local processes. Streamable HTTP transport will arrive when there's hosted multi-tenant demand.
 
 ## Contributing
 
-Issues and PRs welcome. See [open issues](https://github.com/vbalagovic/neuraldraft-sdk/issues) for places to start. PRs should:
+Issues and PRs welcome. See [open issues](https://github.com/vbalagovic/neuraldraft-mcp/issues) for places to start. PRs should:
 
 - Keep tests at ≥ 80% line coverage on `src/`
 - Use the existing `register*` helper pattern when adding tools/resources
