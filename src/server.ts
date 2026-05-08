@@ -20,6 +20,8 @@ import { registerGetPageTool } from "./tools/get-page.js";
 import { registerUpdatePageTool } from "./tools/update-page.js";
 import { registerGenerateVideoTool } from "./tools/generate-video.js";
 import { registerCreateBookableServiceTool } from "./tools/create-bookable-service.js";
+import { registerListNewsletterSubscribersTool } from "./tools/list-newsletter-subscribers.js";
+import { registerListContactFormSubmissionsTool } from "./tools/list-contact-form-submissions.js";
 
 import { registerScaffoldBlogPagePrompt } from "./prompts/scaffold-blog-page.js";
 import { registerScaffoldMarketingSitePrompt } from "./prompts/scaffold-marketing-site.js";
@@ -97,6 +99,8 @@ export function createMcpServer({ config, client }: BuildServerOptions): McpServ
   registerUpdatePageTool(server, ctx);
   registerGenerateVideoTool(server, ctx);
   registerCreateBookableServiceTool(server, ctx);
+  registerListNewsletterSubscribersTool(server, ctx);
+  registerListContactFormSubmissionsTool(server, ctx);
 
   // Prompts
   registerScaffoldBlogPagePrompt(server);

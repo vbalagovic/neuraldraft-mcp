@@ -2,7 +2,9 @@ import type { Config } from "./config.js";
 import type {
   BookingWidgetEmbed,
   BrandContext,
+  ContactFormSubmission,
   JobReference,
+  NewsletterSubscription,
   Page,
   PageInput,
   PageUpdateInput,
@@ -122,11 +124,14 @@ export class NeuralDraftClient {
   // -------------------- Videos --------------------
 
   /**
-   * Trigger a premium AI video clip (Kling v2.1 / Runway Gen4).
-   * Charges 100 credits. Returns a Job; poll `getJob`.
+   * Trigger an AI video clip. `tier` selects the model & cost:
+   *   - "budget"  (default) → Wan 2.1, 40 credits, every plan
+   *   - "premium" → Kling v2.1 / Runway Gen4, 300 credits, Build plan or higher
+   * Returns a Job; poll `getJob`.
    */
   generateVideo(input: {
     prompt: string;
+    tier?: "budget" | "premium";
     aspect_ratio?: string;
     duration_seconds?: number;
     visual_style?: string;
@@ -161,6 +166,22 @@ export class NeuralDraftClient {
       "/bookable-services",
       input,
     );
+  }
+
+  // -------------------- Forms (newsletter + contact) --------------------
+
+  listNewsletterSubscribers(
+    params: { page?: number; page_size?: number; app_lead?: boolean; search?: string } = {},
+  ): Promise<Paginated<NewsletterSubscription>> {
+    const qs = toQuery(params);
+    return this.request<Paginated<NewsletterSubscription>>("GET", `/newsletters${qs}`);
+  }
+
+  listContactFormSubmissions(
+    params: { page?: number; page_size?: number; search?: string } = {},
+  ): Promise<Paginated<ContactFormSubmission>> {
+    const qs = toQuery(params);
+    return this.request<Paginated<ContactFormSubmission>>("GET", `/contact-forms${qs}`);
   }
 
   // -------------------- Pages --------------------

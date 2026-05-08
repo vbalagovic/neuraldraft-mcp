@@ -82,6 +82,22 @@ export interface Paginated<T> {
   meta?: { page: number; page_size: number; total: number };
 }
 
+export interface NewsletterSubscription {
+  id: number;
+  email: string;
+  app_lead?: boolean;
+  subscribed_at?: string | null;
+}
+
+export interface ContactFormSubmission {
+  id: number;
+  email: string;
+  subject?: string | null;
+  message?: string | null;
+  data?: Record<string, unknown> | null;
+  submitted_at?: string | null;
+}
+
 export interface BookingWidgetEmbed {
   embed_html: string;
   snippet_url: string;

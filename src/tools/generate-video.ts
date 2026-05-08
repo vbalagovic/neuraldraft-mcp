@@ -5,10 +5,13 @@ import type { ServerContext } from "../server.js";
 import { mapApiError } from "../errors.js";
 
 /**
- * Premium video generation (Kling v2.1 / Runway Gen4).
+ * Video generation with budget / premium tiers.
  *
  * Returns a Job — call `get_job` with the returned id until status='completed'.
- * Charges 100 credits. The API returns 402 if the project doesn't have enough.
+ * Charges 40 credits (budget, default — Wan 2.1) or 300 credits (premium —
+ * Kling v2.1 / Runway Gen4, Build+ plan only). The API returns 402 if the
+ * project doesn't have enough credits, and a 402 with `plan_required:"build"`
+ * if a Free or Hobby tenant requests `tier=premium`.
  */
 export function registerGenerateVideoTool(
   server: McpServer,
@@ -19,8 +22,10 @@ export function registerGenerateVideoTool(
     {
       title: "Generate a brand-aware video clip",
       description: [
-        "Kick off a premium video generation (Kling v2.1 / Runway Gen4) and return a Job.",
-        "Costs 100 credits per call. Poll with get_job until status='completed'.",
+        "Kick off a video generation and return a Job. Two tiers:",
+        "tier='budget' (default) uses Wan 2.1 — 40 credits per clip.",
+        "tier='premium' uses Kling v2.1 / Runway Gen4 — 300 credits, Build plan or higher only.",
+        "Poll with get_job until status='completed'.",
         "Aspect ratios optimised for short-form social: 9:16 (Reels/TikTok), 16:9 (YouTube), 1:1 (feed).",
       ].join(" "),
       inputSchema: {
@@ -30,6 +35,12 @@ export function registerGenerateVideoTool(
           .max(2000)
           .describe(
             "What the video should show. Be visual: action verbs, camera movement, mood. e.g. 'cinematic top-down shot of pour-over coffee, slow motion, warm morning light'.",
+          ),
+        tier: z
+          .enum(["budget", "premium"])
+          .optional()
+          .describe(
+            "Quality / cost tier. 'budget' (default, 40 credits) uses Wan 2.1 and is available on every plan. 'premium' (300 credits) uses Kling v2.1 / Runway Gen4 and requires a Build plan or higher — Free/Hobby projects get a 402 plan_required.",
           ),
         aspect_ratio: z
           .enum(["1:1", "16:9", "9:16", "4:3", "3:4", "3:2", "2:3"])
