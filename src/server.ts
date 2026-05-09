@@ -8,6 +8,8 @@ import { registerConventionResources } from "./resources/conventions.js";
 
 import { registerRegisterComponentTool } from "./tools/register-component.js";
 import { registerGenerateBlogPostTool } from "./tools/generate-blog-post.js";
+import { registerGetBlogPostTool } from "./tools/get-blog-post.js";
+import { registerUpdateBlogPostTool } from "./tools/update-blog-post.js";
 import { registerGenerateImageTool } from "./tools/generate-image.js";
 import { registerListImagesTool } from "./tools/list-images.js";
 import { registerGetImageTool } from "./tools/get-image.js";
@@ -92,6 +94,8 @@ export function createMcpServer({ config, client }: BuildServerOptions): McpServ
   // Tools
   registerRegisterComponentTool(server, ctx);
   registerGenerateBlogPostTool(server, ctx);
+  registerGetBlogPostTool(server, ctx);
+  registerUpdateBlogPostTool(server, ctx);
   registerGenerateImageTool(server, ctx);
   registerListImagesTool(server, ctx);
   registerGetImageTool(server, ctx);

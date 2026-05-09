@@ -33,6 +33,8 @@ describe("tools", () => {
     const expected = new Set([
       "create_translation_keys",
       "generate_blog_post",
+      "get_blog_post",
+      "update_blog_post",
       "generate_image",
       "get_job",
       "get_product",

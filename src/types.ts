@@ -143,3 +143,47 @@ export interface PageInput {
 }
 
 export type PageUpdateInput = Partial<PageInput>;
+
+// -------------------- Blog posts --------------------
+
+export type BlogPostStatus = "draft" | "published" | "scheduled" | "archived";
+
+export interface BlogPostTranslation {
+  lang: string;
+  title: string;
+  excerpt?: string | null;
+  content?: string;
+  meta_title?: string | null;
+  meta_description?: string | null;
+}
+
+export interface BlogPost {
+  id: number;
+  slug: string;
+  status: BlogPostStatus;
+  featured_image?: string | null;
+  published_at?: string | null;
+  scheduled_at?: string | null;
+  title: string;
+  excerpt?: string | null;
+  content?: string | null;
+  meta_title?: string | null;
+  meta_description?: string | null;
+  translations?: BlogPostTranslation[];
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface BlogPostUpdateInput {
+  title?: string;
+  content?: string;
+  excerpt?: string;
+  meta_title?: string | null;
+  meta_description?: string | null;
+  slug?: string;
+  category_id?: number;
+  featured_image?: string;
+  status?: "draft" | "published" | "scheduled";
+  language_code?: string;
+  tags?: number[];
+}

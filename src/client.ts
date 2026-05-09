@@ -1,5 +1,7 @@
 import type { Config } from "./config.js";
 import type {
+  BlogPost,
+  BlogPostUpdateInput,
   BookingWidgetEmbed,
   BrandContext,
   ContactFormSubmission,
@@ -108,6 +110,53 @@ export class NeuralDraftClient {
           : {}),
       },
     });
+  }
+
+  /**
+   * GET /blog-posts/{id_or_slug} — fetch a single post.  Numeric ids and
+   * slugs are both accepted by the API.  When `lang` is supplied, the
+   * server-side resource picks the matching translation for `title`,
+   * `content`, `excerpt`, `meta_title`, `meta_description`.
+   */
+  getBlogPost(idOrSlug: string | number, opts: { lang?: string } = {}): Promise<BlogPost> {
+    const qs = toQuery({ lang: opts.lang });
+    return this.request<BlogPost>(
+      "GET",
+      `/blog-posts/${encodeURIComponent(String(idOrSlug))}${qs}`,
+    );
+  }
+
+  /**
+   * GET /blog-posts — paginated list (filter by status, language, category, tag).
+   */
+  listBlogPosts(
+    params: {
+      page?: number;
+      page_size?: number;
+      status?: "draft" | "published" | "scheduled";
+      lang?: string;
+      category?: string;
+      tag?: string;
+      sort?: "created_at" | "published_at" | "-created_at" | "-published_at";
+    } = {},
+  ): Promise<Paginated<BlogPost>> {
+    const qs = toQuery(params);
+    return this.request<Paginated<BlogPost>>("GET", `/blog-posts${qs}`);
+  }
+
+  /**
+   * PATCH /blog-posts/{id} — update fields on an existing post.  Text
+   * fields (title, content, excerpt, meta_title, meta_description) write
+   * to the matching PostTranslation (resolved by `language_code`, default
+   * 'en').  Post-level fields (slug, category_id, featured_image, status,
+   * tags) write to the post itself.
+   */
+  updateBlogPost(id: number, input: BlogPostUpdateInput): Promise<BlogPost> {
+    return this.request<BlogPost>(
+      "PATCH",
+      `/blog-posts/${encodeURIComponent(String(id))}`,
+      input,
+    );
   }
 
   // -------------------- Images --------------------
