@@ -187,3 +187,60 @@ export interface BlogPostUpdateInput {
   language_code?: string;
   tags?: number[];
 }
+
+// -------------------- Brand update --------------------
+
+export interface BrandUpdateInput {
+  voice?: string | null;
+  audience?: string | null;
+  content_tone?: string | null;
+  content_goals?: string[] | null;
+  preferred_topics?: string[] | null;
+  description?: string | null;
+  logo_url?: string | null;
+  colors?: {
+    primary?: { hex?: string | null; name?: string | null } | null;
+    secondary?: { hex?: string | null; name?: string | null } | null;
+    accent?: { hex?: string | null; name?: string | null } | null;
+  } | null;
+  fonts?: { heading?: string | null; body?: string | null } | null;
+  target_languages?: string[] | null;
+  default_language?: string | null;
+}
+
+// -------------------- Content (translation keys) --------------------
+
+export interface ContentKey {
+  key: string;
+  scope?: string;
+  scope_id?: number | null;
+  value?: string | null;
+  all_locales?: Record<string, string>;
+  updated_at?: string | null;
+}
+
+// -------------------- Usage --------------------
+
+export interface UsageBreakdownEntry {
+  operation_type: string;
+  total_spent: number;
+  count: number;
+}
+
+export interface Usage {
+  credits_balance: number;
+  credits_monthly_limit: number;
+  credits_reset_at: string | null;
+  period_start: string;
+  period_end: string;
+  total_spent_this_period: number;
+  breakdown: UsageBreakdownEntry[];
+}
+
+// -------------------- Workspaces (central login) --------------------
+
+export interface Workspace {
+  id: number;
+  name: string;
+  domain: string;
+}

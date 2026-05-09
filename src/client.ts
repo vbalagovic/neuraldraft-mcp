@@ -4,7 +4,9 @@ import type {
   BlogPostUpdateInput,
   BookingWidgetEmbed,
   BrandContext,
+  BrandUpdateInput,
   ContactFormSubmission,
+  ContentKey,
   JobReference,
   NewsletterSubscription,
   Page,
@@ -14,6 +16,8 @@ import type {
   Product,
   RegisteredComponent,
   TranslationKeyCreateResult,
+  Usage,
+  Workspace,
 } from "./types.js";
 
 /**
@@ -35,12 +39,17 @@ export class NeuralDraftClient {
     return this.request<BrandContext>("GET", "/brand");
   }
 
+  updateBrand(input: BrandUpdateInput): Promise<BrandContext> {
+    return this.request<BrandContext>("PATCH", "/brand", input);
+  }
+
   // -------------------- Components --------------------
 
   registerComponent(input: {
     html: string;
     intent: string;
     page_slug?: string;
+    position?: number;
   }): Promise<RegisteredComponent> {
     return this.request<RegisteredComponent>("POST", "/components/register", input);
   }
@@ -56,6 +65,38 @@ export class NeuralDraftClient {
    * synthesised by the client. Once the spec gains a bulk endpoint, swap
    * the body in-place — the tool contract stays stable.
    */
+  /**
+   * GET /v1/content/{key}?lang=en — read a single translation key.
+   * Returns the resolved value plus the full all_locales map.
+   */
+  getContent(key: string, opts: { lang?: string } = {}): Promise<ContentKey> {
+    const qs = toQuery({ lang: opts.lang });
+    return this.request<ContentKey>(
+      "GET",
+      `/content/${encodeURIComponent(key)}${qs}`,
+    );
+  }
+
+  /**
+   * GET /v1/content — paginated list. Filter by `search` (substring on key)
+   * and `scope` (page|component|global).
+   *
+   * The API doesn't support a literal `prefix` filter; we pass `search` so
+   * the same intent works (controller does `LIKE %search%`).
+   */
+  listContent(
+    params: {
+      search?: string;
+      scope?: "page" | "component" | "global";
+      lang?: string;
+      page?: number;
+      page_size?: number;
+    } = {},
+  ): Promise<Paginated<ContentKey>> {
+    const qs = toQuery(params);
+    return this.request<Paginated<ContentKey>>("GET", `/content${qs}`);
+  }
+
   async createTranslationKeys(
     keys: Record<string, string>,
     language: string = "en",
@@ -64,10 +105,13 @@ export class NeuralDraftClient {
     const skipped_existing: string[] = [];
     for (const [key, value] of Object.entries(keys)) {
       try {
+        // ContentController::upsert validates `lang` (not `language_code`).
+        // `create_if_missing` is not part of the validate ruleset — the
+        // upsert is always create-or-update — so we drop it.
         await this.request<unknown>(
           "PUT",
           `/content/${encodeURIComponent(key)}`,
-          { value, language_code: language, create_if_missing: true },
+          { value, lang: language },
         );
         created.push(key);
       } catch (err) {
@@ -88,28 +132,40 @@ export class NeuralDraftClient {
    * Trigger an AI blog-post generation. Returns a Job reference; poll
    * `GET /jobs/{id}` (or use the `get_job` tool) for completion.
    *
-   * @param translate_to ISO codes the AI should also produce localized versions in.
+   * The v1 API expects `type: 'ai'` plus all AI parameters at the top level
+   * (see BlogController::storeAi). It accepts `translate_to_all: true` (auto-
+   * translate into every project target language); single-language translation
+   * is done post-publish via POST /v1/blog-posts/{id}/translations.
    */
   generateBlogPost(input: {
     topic: string;
-    style?: string;
+    style?: "professional" | "casual" | "educational" | "thought_leadership" | "storytelling";
     word_count?: number;
     target_audience?: string;
     primary_keyword?: string;
     secondary_keywords?: string[];
-    translate_to?: string[];
+    translate_to_all?: boolean;
     enable_research?: boolean;
-    image_style?: string;
+    research_depth?: "light" | "standard" | "deep";
+    image_style?: "photo" | "illustration" | "abstract";
+    additional_instructions?: string;
   }): Promise<JobReference> {
-    const { translate_to, ...rest } = input;
     return this.request<JobReference>("POST", "/blog-posts", {
-      ai: {
-        ...rest,
-        ...(translate_to && translate_to.length > 0
-          ? { translate_to_languages: translate_to }
-          : {}),
-      },
+      type: "ai",
+      ...input,
     });
+  }
+
+  /**
+   * POST /v1/blog-posts/{id}/translations — async translate to one language.
+   * Returns 202 + JobReference.
+   */
+  translateBlogPost(id: number, languageCode: string): Promise<JobReference> {
+    return this.request<JobReference>(
+      "POST",
+      `/blog-posts/${encodeURIComponent(String(id))}/translations`,
+      { language_code: languageCode },
+    );
   }
 
   /**
@@ -351,6 +407,61 @@ export class NeuralDraftClient {
     return this.request<JobReference>("GET", `/jobs/${encodeURIComponent(id)}`);
   }
 
+  // -------------------- Project / usage --------------------
+
+  /**
+   * GET /v1/projects/me/usage — current credit balance, period bounds, and
+   * per-operation spend breakdown.
+   */
+  getUsage(): Promise<Usage> {
+    return this.request<Usage>("GET", "/projects/me/usage");
+  }
+
+  // -------------------- Workspaces (central login) --------------------
+
+  /**
+   * GET <central>/central/api/tenants-for-email?email=...
+   *
+   * The endpoint is on the CENTRAL host (e.g. https://app.neuraldraft.io),
+   * not the per-tenant API. Returns the list of {id, name, domain} workspaces
+   * the email is registered against — handy when an AI is troubleshooting
+   * multi-workspace login. Always 200 (empty list for unknown emails).
+   *
+   * Derives the central host from the API URL:
+   *   https://api.neuraldraft.io/v1            → https://app.neuraldraft.io
+   *   http://app.lvh.me/v1                     → http://app.lvh.me
+   *   http://acme.lvh.me/v1                    → http://app.lvh.me (sibling host)
+   * The override `centralUrl` lets callers point this at any host explicitly.
+   */
+  async findWorkspaces(
+    email: string,
+    centralUrl?: string,
+  ): Promise<{ workspaces: Workspace[] }> {
+    const base = centralUrl ?? deriveCentralHost(this.cfg.apiUrl);
+    const url = `${base.replace(/\/$/, "")}/central/api/tenants-for-email?email=${encodeURIComponent(email)}`;
+
+    let res: Response;
+    try {
+      res = await this.fetchImpl(url, {
+        method: "GET",
+        headers: {
+          Accept: "application/json",
+          "User-Agent": this.cfg.userAgent,
+        },
+      });
+    } catch (err) {
+      throw new ApiError(0, err instanceof Error ? err.message : String(err), url);
+    }
+
+    if (!res.ok) {
+      const text = await safeText(res);
+      throw new ApiError(res.status, text || res.statusText, url);
+    }
+
+    const json = (await res.json()) as { tenants?: Workspace[] };
+    return { workspaces: Array.isArray(json?.tenants) ? json.tenants : [] };
+  }
+
   // -------------------- Internals --------------------
 
   private async request<T>(
@@ -427,6 +538,44 @@ async function safeText(res: Response): Promise<string> {
   } catch {
     return "";
   }
+}
+
+/**
+ * Best-effort derivation of the central admin host from the API base URL.
+ * Heuristics:
+ *   - api.<root> → app.<root>     (production)
+ *   - <tenant>.<root>:port → app.<root>:port  (subdomain dev)
+ *   - http://localhost:port/v1 → http://localhost:port  (single-host dev)
+ *   - already an `app.` host → returned as-is
+ */
+function deriveCentralHost(apiUrl: string): string {
+  let u: URL;
+  try {
+    u = new URL(apiUrl);
+  } catch {
+    return apiUrl.replace(/\/v1\/?$/, "");
+  }
+  const host = u.host;
+  // host[:port]
+  const [hostname, port] = host.split(":");
+  if (!hostname) return `${u.protocol}//${host}`;
+
+  if (hostname === "localhost" || /^\d+\.\d+\.\d+\.\d+$/.test(hostname)) {
+    return `${u.protocol}//${host}`;
+  }
+
+  const parts = hostname.split(".");
+  // already app.* → keep
+  if (parts[0] === "app") {
+    return `${u.protocol}//${host}`;
+  }
+  // strip the first label, prepend `app`
+  if (parts.length >= 2) {
+    const root = parts.slice(1).join(".");
+    const rebuilt = port ? `app.${root}:${port}` : `app.${root}`;
+    return `${u.protocol}//${rebuilt}`;
+  }
+  return `${u.protocol}//${host}`;
 }
 
 function toQuery(params: Record<string, unknown>): string {

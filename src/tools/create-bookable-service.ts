@@ -104,6 +104,19 @@ export function registerCreateBookableServiceTool(
           .regex(/^#[0-9A-Fa-f]{6}$/)
           .optional()
           .describe("Hex color used in the calendar UI."),
+        status: z
+          .enum(["active", "inactive"])
+          .optional()
+          .describe("Defaults to 'active'."),
+        sort_order: z.number().int().min(0).optional(),
+        images: z
+          .array(z.string().max(2048))
+          .optional()
+          .describe("List of image URLs (max 2048 chars each)."),
+        metadata: z
+          .record(z.unknown())
+          .optional()
+          .describe("Free-form JSON bag stored on the service."),
       },
     },
     async (input): Promise<CallToolResult> => {

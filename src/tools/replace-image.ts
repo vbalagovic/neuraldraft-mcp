@@ -43,14 +43,16 @@ export function registerReplaceImageTool(
         prompt: z
           .string()
           .min(3)
+          .max(1000)
           .optional()
           .describe("Subject / scene description for AI regeneration."),
         aspect_ratio: z
-          .enum(["1:1", "4:3", "16:9", "9:16", "3:4", "21:9"])
+          .enum(["1:1", "16:9", "9:16", "4:3", "3:4", "3:2", "2:3"])
           .optional()
           .describe("Aspect ratio for AI regeneration. Defaults to 16:9."),
         style: z
           .string()
+          .max(100)
           .optional()
           .describe("Visual style for AI regeneration, e.g. 'photorealistic'."),
       },

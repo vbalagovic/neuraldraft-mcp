@@ -8,6 +8,8 @@ import { mapApiError } from "../errors.js";
  * Trigger an AI blog post generation. Returns a Job — call `get_job` to
  * poll for completion. (Each generation costs ~400 credits; the user must
  * have credits available or the API returns 402.)
+ *
+ * Schema mirrors BlogController::storeAi exactly.
  */
 export function registerGenerateBlogPostTool(
   server: McpServer,
@@ -20,45 +22,69 @@ export function registerGenerateBlogPostTool(
       description: [
         "Kick off the AI blog generation pipeline (research → draft → image → SEO).",
         "Returns a Job ID immediately; poll with the get_job tool until status is 'completed'.",
-        "Costs ~400 credits per post (more if translate_to is set).",
+        "Costs ~400 credits per post. Set translate_to_all=true to fan out into every project target language (5 credits per extra language).",
       ].join(" "),
       inputSchema: {
         topic: z
           .string()
           .min(3)
+          .max(500)
           .describe("Topic / angle for the post, e.g. '5-minute breathwork for anxious mornings'."),
         style: z
-          .string()
+          .enum([
+            "professional",
+            "casual",
+            "educational",
+            "thought_leadership",
+            "storytelling",
+          ])
           .optional()
-          .describe("Tone / style override, e.g. 'friendly_professional', 'playful', 'authoritative'. Defaults to brand voice."),
+          .describe("Tone / style. Defaults to brand voice."),
         word_count: z
           .number()
           .int()
-          .min(200)
+          .min(300)
           .max(5000)
           .optional()
           .describe("Approximate word count target. Defaults to ~1200."),
         target_audience: z
           .string()
+          .max(500)
           .optional()
           .describe("Audience override. Defaults to brand audience."),
-        primary_keyword: z.string().optional().describe("SEO primary keyword."),
+        primary_keyword: z
+          .string()
+          .max(200)
+          .optional()
+          .describe("SEO primary keyword."),
         secondary_keywords: z
           .array(z.string())
           .optional()
           .describe("SEO secondary keywords."),
-        translate_to: z
-          .array(z.string())
+        image_style: z
+          .enum(["photo", "illustration", "abstract"])
           .optional()
-          .describe("BCP-47 language codes to also translate the post into, e.g. ['de', 'fr', 'es']."),
+          .describe("Featured image style. Defaults to 'photo'."),
+        translate_to_all: z
+          .boolean()
+          .optional()
+          .describe(
+            "When true, fans the post out into every project target language after the source draft is written. " +
+              "For per-language control use translate_blog_post on the resulting post id.",
+          ),
         enable_research: z
           .boolean()
           .optional()
-          .describe("Enable web research before drafting. Defaults to true; costs slightly more."),
-        image_style: z
-          .string()
+          .describe("Enable web research before drafting. Defaults to true."),
+        research_depth: z
+          .enum(["light", "standard", "deep"])
           .optional()
-          .describe("Featured image style (e.g. 'warm_lifestyle_photo'). Defaults to brand image style."),
+          .describe("Research depth. Defaults to 'standard'."),
+        additional_instructions: z
+          .string()
+          .max(2000)
+          .optional()
+          .describe("Free-form steering passed verbatim into the drafting prompt."),
       },
     },
     async (input): Promise<CallToolResult> => {

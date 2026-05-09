@@ -119,14 +119,36 @@ The server reads two environment variables (set by your MCP client config — ne
 
 | Tool | Description |
 |---|---|
+| `get_brand` | Read the project's brand context (industry, audience, voice, colors, fonts) |
+| `update_brand` | Patch brand fields (voice, audience, colors, fonts, languages) |
 | `register_component` | Register generated HTML as editable in the admin. Call once per section. |
 | `generate_blog_post` | Kick off the AI blog pipeline (research → draft → image → SEO → translations) |
+| `get_blog_post` | Fetch a single blog post by id or slug (locale-aware) |
+| `list_blog_posts` | Paginated list with status / language / category / tag filters |
+| `update_blog_post` | Patch a post's title / body / SEO meta / status |
 | `generate_image` | Brand-consistent image generation (returns a Job) |
+| `list_images` | List registered image keys |
+| `get_image` | Resolve a single registered image URL by key |
+| `register_image` | Bind a direct image URL to a stable key (no AI) |
+| `replace_image` | Swap an image by URL or AI regeneration |
+| `delete_image` | Remove an image-key registration |
+| `generate_video` | Brand-aware video clip — budget (40 cr) or premium (300 cr) tier |
+| `create_page` | Create a TenantPage with per-page SEO meta |
+| `list_pages` | Paginated list of pages |
+| `get_page` | Fetch a page by id or slug (full SEO meta) |
+| `update_page` | Patch page fields and / or SEO meta (merge semantics) |
 | `create_translation_keys` | Bulk-create translation keys with default values |
+| `get_content` | Read a single translation key (resolved value + all_locales) |
+| `list_content` | Paginated key list with search / scope / language filters |
 | `list_products` | List the project's products (paginated) |
-| `get_product` | Fetch a single product by id |
+| `get_product` | Fetch a single product by id or slug |
+| `create_bookable_service` | Create a bookable service (time-slot or date-range) |
 | `setup_booking_widget` | Get the embeddable booking widget HTML for a service |
-| `get_job` | Poll an async job (blog/image generation) for completion |
+| `list_newsletter_subscribers` | List captured newsletter subscribers |
+| `list_contact_form_submissions` | List captured contact-form submissions |
+| `get_usage` | Current credit balance, monthly limit, reset date, breakdown |
+| `get_job` | Poll an async job (blog/image/video generation) for completion |
+| `find_workspaces` | List Neural Draft workspaces an email is registered against (calls the central host, not the per-tenant API) |
 
 ### Prompts (slash commands)
 

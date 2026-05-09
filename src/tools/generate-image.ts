@@ -26,17 +26,21 @@ export function registerGenerateImageTool(
         prompt: z
           .string()
           .min(3)
+          .max(1000)
           .describe("Subject / scene description, e.g. 'Serene yoga studio at dawn, soft sage tones, no people'."),
         aspect_ratio: z
-          .enum(["1:1", "4:3", "16:9", "9:16", "3:4", "21:9"])
+          .enum(["1:1", "16:9", "9:16", "4:3", "3:4", "3:2", "2:3"])
           .optional()
           .describe("Aspect ratio. Defaults to 16:9."),
         style: z
           .string()
+          .max(100)
           .optional()
           .describe("Visual style, e.g. 'photorealistic', 'editorial_illustration', 'minimal_geometric'."),
         key: z
           .string()
+          .max(255)
+          .regex(/^[\w.\-\/]+$/, "Key must match ^[\\w.\\-\\/]+$")
           .optional()
           .describe("Stable key to bind the result to (e.g. 'hero.background'); future calls can fetch by key."),
       },

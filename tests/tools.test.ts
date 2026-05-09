@@ -34,6 +34,7 @@ describe("tools", () => {
       "create_translation_keys",
       "generate_blog_post",
       "get_blog_post",
+      "list_blog_posts",
       "update_blog_post",
       "generate_image",
       "get_job",
@@ -46,6 +47,12 @@ describe("tools", () => {
       "register_image",
       "replace_image",
       "delete_image",
+      "get_brand",
+      "update_brand",
+      "get_content",
+      "list_content",
+      "get_usage",
+      "find_workspaces",
     ]);
     for (const name of expected) {
       expect(names).toContain(name);
@@ -132,11 +139,10 @@ describe("tools", () => {
     it("returns a job_id on success", async () => {
       nock(TEST_API_BASE)
         .post("/blog-posts", (body: Record<string, unknown>) => {
-          const ai = body.ai as Record<string, unknown> | undefined;
           return (
-            ai !== undefined &&
-            ai.topic === "5-minute breathwork" &&
-            ai.word_count === 1200
+            body.type === "ai" &&
+            body.topic === "5-minute breathwork" &&
+            body.word_count === 1200
           );
         })
         .reply(202, {
@@ -177,25 +183,23 @@ describe("tools", () => {
       expect(res.content[0]!.text).toMatch(/out of credits|credits/i);
     });
 
-    it("forwards translate_to as translate_to_languages", async () => {
+    it("passes translate_to_all through to the API at the top level", async () => {
       nock(TEST_API_BASE)
         .post("/blog-posts", (body: Record<string, unknown>) => {
-          const ai = body.ai as Record<string, unknown>;
-          return Array.isArray(ai.translate_to_languages) &&
-            (ai.translate_to_languages as string[]).includes("de");
+          return body.type === "ai" && body.translate_to_all === true;
         })
-        .reply(202, { id: "job_de", type: "blog_post.generate", status: "pending", created_at: "x" });
+        .reply(202, { id: "job_tr", type: "blog_post.generate", status: "pending", created_at: "x" });
 
       const { client, cleanup } = await makeTestServer();
       teardown = cleanup;
 
       const res = (await client.callTool({
         name: "generate_blog_post",
-        arguments: { topic: "morning routines", translate_to: ["de", "fr"] },
+        arguments: { topic: "morning routines", translate_to_all: true },
       })) as CallToolResultLite;
 
       expect(res.isError).toBeFalsy();
-      expect(res.structuredContent?.job_id).toBe("job_de");
+      expect(res.structuredContent?.job_id).toBe("job_tr");
     });
   });
 

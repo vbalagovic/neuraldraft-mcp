@@ -29,6 +29,13 @@ import { registerGenerateVideoTool } from "./tools/generate-video.js";
 import { registerCreateBookableServiceTool } from "./tools/create-bookable-service.js";
 import { registerListNewsletterSubscribersTool } from "./tools/list-newsletter-subscribers.js";
 import { registerListContactFormSubmissionsTool } from "./tools/list-contact-form-submissions.js";
+import { registerGetBrandTool } from "./tools/get-brand.js";
+import { registerUpdateBrandTool } from "./tools/update-brand.js";
+import { registerGetContentTool } from "./tools/get-content.js";
+import { registerListContentTool } from "./tools/list-content.js";
+import { registerGetUsageTool } from "./tools/get-usage.js";
+import { registerListBlogPostsTool } from "./tools/list-blog-posts.js";
+import { registerFindWorkspacesTool } from "./tools/find-workspaces.js";
 
 import { registerScaffoldBlogPagePrompt } from "./prompts/scaffold-blog-page.js";
 import { registerScaffoldMarketingSitePrompt } from "./prompts/scaffold-marketing-site.js";
@@ -63,7 +70,7 @@ export function createMcpServer({ config, client }: BuildServerOptions): McpServ
     : "neuraldraft";
 
   const server = new McpServer(
-    { name: displayName, version: "0.1.0" },
+    { name: displayName, version: "0.3.0" },
     {
       // Top-level instructions are inserted into the AI client's system
       // prompt verbatim. Keep terse — every word costs context tokens.
@@ -115,6 +122,13 @@ export function createMcpServer({ config, client }: BuildServerOptions): McpServ
   registerCreateBookableServiceTool(server, ctx);
   registerListNewsletterSubscribersTool(server, ctx);
   registerListContactFormSubmissionsTool(server, ctx);
+  registerGetBrandTool(server, ctx);
+  registerUpdateBrandTool(server, ctx);
+  registerGetContentTool(server, ctx);
+  registerListContentTool(server, ctx);
+  registerGetUsageTool(server, ctx);
+  registerListBlogPostsTool(server, ctx);
+  registerFindWorkspacesTool(server, ctx);
 
   // Prompts
   registerScaffoldBlogPagePrompt(server);

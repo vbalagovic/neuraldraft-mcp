@@ -34,18 +34,26 @@ export function registerRegisterComponentTool(
         intent: z
           .string()
           .min(1)
+          .max(100)
           .describe(
             "What this section is for, e.g. 'marketing_hero', 'pricing_grid', 'testimonials'. Free-form but lowercase_snake_case is recommended.",
           ),
         page_slug: z
           .string()
+          .max(255)
           .optional()
           .describe("Slug of the page this section belongs to (e.g. 'home', 'about', 'pricing')."),
+        position: z
+          .number()
+          .int()
+          .min(0)
+          .optional()
+          .describe("0-based display order on the page. Omit to append at the end."),
       },
     },
-    async ({ html, intent, page_slug }): Promise<CallToolResult> => {
+    async ({ html, intent, page_slug, position }): Promise<CallToolResult> => {
       try {
-        const r = await ctx.client.registerComponent({ html, intent, page_slug });
+        const r = await ctx.client.registerComponent({ html, intent, page_slug, position });
         const out = {
           component_id: r.id,
           translation_keys: r.keys_created ?? [],
