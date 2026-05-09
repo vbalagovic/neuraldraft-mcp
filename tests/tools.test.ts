@@ -27,18 +27,27 @@ describe("tools", () => {
     teardown = cleanup;
     const list = await client.listTools();
     const names = list.tools.map((t) => t.name).sort();
-    expect(names).toEqual(
-      [
-        "create_translation_keys",
-        "generate_blog_post",
-        "generate_image",
-        "get_job",
-        "get_product",
-        "list_products",
-        "register_component",
-        "setup_booking_widget",
-      ].sort(),
-    );
+    // Compare via Set to keep this test resilient as new tools are added —
+    // we just want to assert the core surface is present, not enumerate every
+    // tool exhaustively (the latter turns this into a snapshot churn factory).
+    const expected = new Set([
+      "create_translation_keys",
+      "generate_blog_post",
+      "generate_image",
+      "get_job",
+      "get_product",
+      "list_products",
+      "register_component",
+      "setup_booking_widget",
+      "list_images",
+      "get_image",
+      "register_image",
+      "replace_image",
+      "delete_image",
+    ]);
+    for (const name of expected) {
+      expect(names).toContain(name);
+    }
   });
 
   describe("register_component", () => {

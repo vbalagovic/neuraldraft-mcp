@@ -121,6 +121,63 @@ export class NeuralDraftClient {
     return this.request<JobReference>("POST", "/images", input);
   }
 
+  /**
+   * List registered image keys. `prefix` filters by user-key prefix
+   * (e.g. `hero.` → `hero.background`, `hero.foreground`).
+   */
+  listImages(
+    params: { page?: number; page_size?: number; prefix?: string } = {},
+  ): Promise<Paginated<{ key: string; url: string | null; created_at: string | null; updated_at: string | null }>> {
+    const qs = toQuery(params);
+    return this.request<
+      Paginated<{ key: string; url: string | null; created_at: string | null; updated_at: string | null }>
+    >("GET", `/images${qs}`);
+  }
+
+  getImage(
+    key: string,
+  ): Promise<{ key: string; url: string | null; created_at: string | null; updated_at: string | null }> {
+    return this.request<{
+      key: string;
+      url: string | null;
+      created_at: string | null;
+      updated_at: string | null;
+    }>("GET", `/images/${encodeURIComponent(key)}`);
+  }
+
+  /**
+   * Register or swap an image's URL via direct URL. Synchronous, 0 credits.
+   */
+  registerImage(
+    key: string,
+    url: string,
+  ): Promise<{ key: string; url: string | null; created_at: string | null; updated_at: string | null }> {
+    return this.request<{
+      key: string;
+      url: string | null;
+      created_at: string | null;
+      updated_at: string | null;
+    }>("PUT", `/images/${encodeURIComponent(key)}`, { url });
+  }
+
+  /**
+   * Regenerate the image at `key` via AI. Returns a Job (poll get_job).
+   * Costs ~40 credits.
+   */
+  regenerateImage(
+    key: string,
+    input: { prompt: string; aspect_ratio?: string; style?: string },
+  ): Promise<JobReference> {
+    return this.request<JobReference>("PUT", `/images/${encodeURIComponent(key)}`, {
+      regenerate: true,
+      ...input,
+    });
+  }
+
+  deleteImage(key: string): Promise<void> {
+    return this.request<void>("DELETE", `/images/${encodeURIComponent(key)}`);
+  }
+
   // -------------------- Videos --------------------
 
   /**
