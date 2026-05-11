@@ -20,9 +20,9 @@
 
 A real Claude Code session driving Neural Draft via MCP. One natural-language prompt creates 4 translation keys (EN + HR) and registers a hero image.
 
-https://github.com/vbalagovic/neuraldraft-mcp/raw/main/assets/demo.mp4
+![MCP demo](./assets/demo.gif)
 
-[![MCP demo still](./assets/demo-still.png)](./assets/demo.mp4)
+[Watch the full MP4 →](./assets/demo.mp4)
 
 ## Why it exists
 
