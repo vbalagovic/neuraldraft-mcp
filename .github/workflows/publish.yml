@@ -83,7 +83,9 @@ jobs:
         run: mcp-publisher login github-oidc
 
       - name: Publish to MCP Registry
+        shell: bash
         run: |
+          set -o pipefail
           if mcp-publisher publish 2>&1 | tee /tmp/mcp-pub.log; then
             echo "MCP registry publish ok"
           else
@@ -91,7 +93,7 @@ jobs:
             if grep -qiE "already (exists|published)|version.*exists" /tmp/mcp-pub.log; then
               echo "::notice::MCP registry already has this version — skipping."
             else
-              cat /tmp/mcp-pub.log
+              echo "::error::MCP publisher failed (see log above)"
               exit 1
             fi
           fi
