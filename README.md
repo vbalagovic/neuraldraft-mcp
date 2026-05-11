@@ -16,7 +16,13 @@
 - create translation keys, kick off blog/image generation, list products, set up booking widgets
 - emit markup that's CMS-managed by default — no manual wiring
 
-[![30-second screencast placeholder](https://placehold.co/640x360/0b0e14/7c3aed?text=Demo+coming+soon)](https://github.com/vbalagovic/neuraldraft-mcp)
+## Demo
+
+A real Claude Code session driving Neural Draft via MCP. One natural-language prompt creates 4 translation keys (EN + HR) and registers a hero image.
+
+https://github.com/vbalagovic/neuraldraft-mcp/raw/main/assets/demo.mp4
+
+[![MCP demo still](./assets/demo-still.png)](./assets/demo.mp4)
 
 ## Why it exists
 
