@@ -1,11 +1,11 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
-  "name": "io.github.neuraldraft/mcp",
+  "name": "io.github.vbalagovic/neuraldraft-mcp",
   "title": "Neural Draft",
   "description": "MCP server exposing Neural Draft (CMS, blog, social, booking, commerce) to Claude Code, Cursor, Continue, and other AI coding tools. 30 tools covering brand, content, blog, images, video, pages, components, products, booking, forms, usage, and multi-workspace login.",
   "websiteUrl": "https://neuraldraft.io",
   "repository": {
-    "url": "https://github.com/neuraldraft/mcp",
+    "url": "https://github.com/vbalagovic/neuraldraft-mcp",
     "source": "github"
   },
   "version": "0.3.2",

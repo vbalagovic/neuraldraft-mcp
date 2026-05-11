@@ -1,12 +1,12 @@
-name: Publish to npm
+name: Publish to npm + MCP Registry
 
 # Triggered when:
 #  - a `v*` tag is pushed (`git tag v0.3.0 && git push origin v0.3.0`)
-#  - a push to `main` changes the version in package.json
+#  - a push to `main` changes package.json or server.json
 #  - manual dispatch from the Actions tab
 #
-# Either way, the workflow tests + builds before publishing, and skips if the
-# tag/version already exists on the registry (so re-runs are idempotent).
+# Publishes to both npm and the official MCP Registry. Each step is idempotent
+# (skips if version already exists) so re-runs are safe.
 
 on:
   push:
@@ -16,6 +16,7 @@ on:
       - main
     paths:
       - 'package.json'
+      - 'server.json'
   workflow_dispatch:
 
 jobs:
@@ -64,3 +65,33 @@ jobs:
         run: npm publish --access public --provenance
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      # Wait briefly so the npm registry has the new version before the MCP
+      # registry tries to validate it (the MCP registry pulls package metadata
+      # from npm to confirm the version exists).
+      - name: Wait for npm propagation
+        if: steps.check.outputs.already_published == 'false'
+        run: sleep 20
+
+      - name: Install mcp-publisher
+        run: |
+          curl -sL "https://github.com/modelcontextprotocol/registry/releases/download/v1.7.8/mcp-publisher_linux_amd64.tar.gz" \
+            | tar -xz -C /usr/local/bin mcp-publisher
+          mcp-publisher --help > /dev/null
+
+      - name: Login to MCP Registry (GitHub OIDC)
+        run: mcp-publisher login github-oidc
+
+      - name: Publish to MCP Registry
+        run: |
+          if mcp-publisher publish 2>&1 | tee /tmp/mcp-pub.log; then
+            echo "MCP registry publish ok"
+          else
+            # Treat 'already exists' as success so re-runs are idempotent.
+            if grep -qiE "already (exists|published)|version.*exists" /tmp/mcp-pub.log; then
+              echo "::notice::MCP registry already has this version — skipping."
+            else
+              cat /tmp/mcp-pub.log
+              exit 1
+            fi
+          fi
