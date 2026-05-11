@@ -1,6 +1,6 @@
 {
   "name": "@neuraldraft/mcp",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "MCP server exposing Neural Draft's content/blog/social/booking/commerce APIs to AI coding tools (Claude Code, Cursor, Continue, etc.).",
   "type": "module",
   "bin": {
