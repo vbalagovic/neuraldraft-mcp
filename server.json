@@ -2,19 +2,19 @@
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.vbalagovic/neuraldraft-mcp",
   "title": "Neural Draft",
-  "description": "Neural Draft MCP — CMS, blog, bookings, commerce backend for AI-built sites. 30 tools, OAuth.",
+  "description": "Neural Draft MCP — CMS, blog, bookings, galleries, commerce. 38 tools.",
   "websiteUrl": "https://neuraldraft.io",
   "repository": {
     "url": "https://github.com/vbalagovic/neuraldraft-mcp",
     "source": "github"
   },
-  "version": "0.3.3",
+  "version": "0.3.4",
   "packages": [
     {
       "registryType": "npm",
       "registryBaseUrl": "https://registry.npmjs.org",
       "identifier": "@neuraldraft/mcp",
-      "version": "0.3.3",
+      "version": "0.3.4",
       "transport": { "type": "stdio" },
       "environmentVariables": [
         {

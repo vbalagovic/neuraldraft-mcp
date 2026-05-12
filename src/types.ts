@@ -237,6 +237,33 @@ export interface Usage {
   breakdown: UsageBreakdownEntry[];
 }
 
+// -------------------- Galleries --------------------
+
+export interface GalleryItem {
+  url: string;
+  alt?: string | null;
+}
+
+export interface Gallery {
+  slug: string;
+  name: string;
+  items: GalleryItem[];
+  items_count: number;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface GalleryCreateInput {
+  name: string;
+  slug?: string;
+  items?: GalleryItem[];
+}
+
+export interface GalleryUpdateInput {
+  name?: string;
+  items?: GalleryItem[];
+}
+
 // -------------------- Workspaces (central login) --------------------
 
 export interface Workspace {

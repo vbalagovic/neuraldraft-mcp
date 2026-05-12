@@ -1,6 +1,6 @@
 {
   "name": "@neuraldraft/mcp",
-  "version": "0.3.3",
+  "version": "0.3.4",
   "mcpName": "io.github.vbalagovic/neuraldraft-mcp",
   "description": "MCP server exposing Neural Draft's content/blog/social/booking/commerce APIs to AI coding tools (Claude Code, Cursor, Continue, etc.).",
   "type": "module",

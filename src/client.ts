@@ -7,6 +7,9 @@ import type {
   BrandUpdateInput,
   ContactFormSubmission,
   ContentKey,
+  Gallery,
+  GalleryCreateInput,
+  GalleryUpdateInput,
   JobReference,
   NewsletterSubscription,
   Page,
@@ -54,6 +57,17 @@ export class NeuralDraftClient {
     return this.request<RegisteredComponent>("POST", "/components/register", input);
   }
 
+  /**
+   * DELETE /v1/components/{id} — remove a registered component.
+   * Returns 204 on success, 404 if the component doesn't exist.
+   */
+  deleteComponent(id: number): Promise<void> {
+    return this.request<void>(
+      "DELETE",
+      `/components/${encodeURIComponent(String(id))}`,
+    );
+  }
+
   // -------------------- Content / Translations --------------------
 
   /**
@@ -95,6 +109,14 @@ export class NeuralDraftClient {
   ): Promise<Paginated<ContentKey>> {
     const qs = toQuery(params);
     return this.request<Paginated<ContentKey>>("GET", `/content${qs}`);
+  }
+
+  /**
+   * DELETE /v1/content/{key} — remove a translation key (all locales).
+   * Returns 204 on success, 404 if the key doesn't exist.
+   */
+  deleteContent(key: string): Promise<void> {
+    return this.request<void>("DELETE", `/content/${encodeURIComponent(key)}`);
   }
 
   async createTranslationKeys(
@@ -365,6 +387,64 @@ export class NeuralDraftClient {
 
   updatePage(id: number, input: PageUpdateInput): Promise<Page> {
     return this.request<Page>("PATCH", `/pages/${encodeURIComponent(String(id))}`, input);
+  }
+
+  /**
+   * DELETE /v1/pages/{id} — by default soft-retires the page (sets is_active=false).
+   * Pass `force=true` for a hard delete. Refuses to delete the homepage.
+   */
+  deletePage(id: number, force: boolean = false): Promise<void> {
+    const qs = force ? "?force=1" : "";
+    return this.request<void>(
+      "DELETE",
+      `/pages/${encodeURIComponent(String(id))}${qs}`,
+    );
+  }
+
+  // -------------------- Galleries --------------------
+
+  /**
+   * GET /v1/galleries — paginated list of galleries (ordered by name).
+   * Note: the v1 endpoint uses `per_page` (not `page_size`) for items-per-page.
+   */
+  listGalleries(
+    params: { page?: number; per_page?: number } = {},
+  ): Promise<Paginated<Gallery>> {
+    const qs = toQuery(params);
+    return this.request<Paginated<Gallery>>("GET", `/galleries${qs}`);
+  }
+
+  /** GET /v1/galleries/{slug} */
+  getGallery(slug: string): Promise<Gallery> {
+    return this.request<Gallery>(
+      "GET",
+      `/galleries/${encodeURIComponent(slug)}`,
+    );
+  }
+
+  /**
+   * POST /v1/galleries — create. Slug auto-derived from name when omitted;
+   * collisions get -2, -3, ... suffixed automatically.
+   */
+  createGallery(input: GalleryCreateInput): Promise<Gallery> {
+    return this.request<Gallery>("POST", "/galleries", input);
+  }
+
+  /** PATCH /v1/galleries/{slug} — update name and/or items (slug is immutable). */
+  updateGallery(slug: string, input: GalleryUpdateInput): Promise<Gallery> {
+    return this.request<Gallery>(
+      "PATCH",
+      `/galleries/${encodeURIComponent(slug)}`,
+      input,
+    );
+  }
+
+  /** DELETE /v1/galleries/{slug} — hard delete. Returns 204. */
+  deleteGallery(slug: string): Promise<void> {
+    return this.request<void>(
+      "DELETE",
+      `/galleries/${encodeURIComponent(slug)}`,
+    );
   }
 
   // -------------------- Products --------------------
