@@ -20,9 +20,9 @@ export function registerListNewsletterSubscribersTool(
     {
       title: "List newsletter subscribers",
       description: [
-        "List the project's captured newsletter subscribers (id, email, app_lead, subscribed_at).",
+        "List the project's captured newsletter subscribers (id, email, app_lead, source, language, subscribed_at, unsubscribed_at).",
         "Read-only; doesn't consume credits.",
-        "Use app_lead=true to filter to/from app-lead-only signups.",
+        "Use app_lead=true to filter to/from app-lead-only signups, source to filter by signup source (end with * for a prefix, e.g. meltdown-guide-*), subscribed=true to hide unsubscribed people.",
       ].join(" "),
       inputSchema: {
         app_lead: z
@@ -36,6 +36,18 @@ export function registerListNewsletterSubscribersTool(
           .max(255)
           .optional()
           .describe("Substring match on email."),
+        source: z
+          .string()
+          .max(191)
+          .optional()
+          .describe(
+            "Signup source sent with the subscribe request, e.g. 'meltdown-guide-en'. End with * to match a prefix ('meltdown-guide-*').",
+          ),
+        language: z.string().max(12).optional().describe("Signup language, e.g. 'en'."),
+        subscribed: z
+          .boolean()
+          .optional()
+          .describe("true = still subscribed only, false = unsubscribed only."),
         page: z.number().int().min(1).optional().describe("1-based page number. Default 1."),
         page_size: z
           .number()
@@ -50,8 +62,16 @@ export function registerListNewsletterSubscribersTool(
       try {
         const result = await ctx.client.listNewsletterSubscribers(input);
         const lines = (result.data ?? []).map(
-          (n) =>
-            `- ${n.email}${n.app_lead ? " 📱" : ""} (id: ${n.id}${n.subscribed_at ? `, ${n.subscribed_at.slice(0, 10)}` : ""})`,
+          (n) => {
+            const details = [
+              `id: ${n.id}`,
+              n.subscribed_at ? n.subscribed_at.slice(0, 10) : null,
+              n.source ? `source: ${n.source}` : null,
+              n.language ? `lang: ${n.language}` : null,
+              n.unsubscribed_at ? `unsubscribed ${n.unsubscribed_at.slice(0, 10)}` : null,
+            ].filter(Boolean);
+            return `- ${n.email}${n.app_lead ? " 📱" : ""} (${details.join(", ")})`;
+          },
         );
         return {
           content: [

@@ -355,7 +355,15 @@ export class NeuralDraftClient {
   // -------------------- Forms (newsletter + contact) --------------------
 
   listNewsletterSubscribers(
-    params: { page?: number; page_size?: number; app_lead?: boolean; search?: string } = {},
+    params: {
+      page?: number;
+      page_size?: number;
+      app_lead?: boolean;
+      search?: string;
+      source?: string;
+      language?: string;
+      subscribed?: boolean;
+    } = {},
   ): Promise<Paginated<NewsletterSubscription>> {
     const qs = toQuery(params);
     return this.request<Paginated<NewsletterSubscription>>("GET", `/newsletters${qs}`);

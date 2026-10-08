@@ -86,7 +86,13 @@ export interface NewsletterSubscription {
   id: number;
   email: string;
   app_lead?: boolean;
+  /** Where they signed up, e.g. "meltdown-guide-en" (sent as `source` on subscribe). */
+  source?: string | null;
+  /** Signup language, e.g. "en". */
+  language?: string | null;
   subscribed_at?: string | null;
+  /** Set when they used the unsubscribe link. */
+  unsubscribed_at?: string | null;
 }
 
 export interface ContactFormSubmission {
