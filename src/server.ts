@@ -44,6 +44,7 @@ import { registerListContentTool } from "./tools/list-content.js";
 import { registerGetUsageTool } from "./tools/get-usage.js";
 import { registerListBlogPostsTool } from "./tools/list-blog-posts.js";
 import { registerFindWorkspacesTool } from "./tools/find-workspaces.js";
+import { registerWorkspaceTools } from "./tools/workspaces.js";
 
 import { registerScaffoldBlogPagePrompt } from "./prompts/scaffold-blog-page.js";
 import { registerScaffoldMarketingSitePrompt } from "./prompts/scaffold-marketing-site.js";
@@ -92,6 +93,7 @@ export function createMcpServer({ config, client }: BuildServerOptions): McpServ
         "5) For each generated section, call `register_component` with the matching `page_slug` so it appears as editable in the customer's admin.",
         "6) `update_page` can patch SEO meta on auto-created stub pages later.",
         "Long-running ops (blog/image/video generation) return a Job — poll via `get_job`.",
+        "Several workspaces (agencies, one per client): call `list_workspaces` first; every tool acts on the active workspace; `switch_workspace` before working on another client, and never copy one client's content into another's.",
       ].join(" "),
       capabilities: {
         // Resources, tools, prompts are auto-derived from registered handlers
@@ -103,6 +105,7 @@ export function createMcpServer({ config, client }: BuildServerOptions): McpServ
 
   // Resources
   registerBrandResource(server, ctx);
+  registerWorkspaceTools(server, ctx);
   registerSchemaResources(server);
   registerConventionResources(server);
 

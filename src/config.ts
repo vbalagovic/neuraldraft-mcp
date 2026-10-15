@@ -25,6 +25,13 @@ const ConfigSchema = z.object({
     .default("https://api.neuraldraft.io/v1"),
   projectId: z.string().optional(),
   displayName: z.string().optional(),
+  /**
+   * Several workspaces in one server (agencies with many client workspaces):
+   * name → API key, from NEURALDRAFT_API_KEYS. The active one is `apiKey`;
+   * switch with the switch_workspace tool.
+   */
+  workspaces: z.record(z.string().regex(API_KEY_REGEX, { message: "Invalid key in NEURALDRAFT_API_KEYS (expected ndsk_live_… / ndsk_test_…)." })).default({}),
+  activeWorkspace: z.string().optional(),
   userAgent: z.string().default(`@neuraldraft/mcp/${process.env.npm_package_version ?? "0.1.0"}`),
 });
 
@@ -49,8 +56,16 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     return undefined;
   };
 
+  const workspaces = parseWorkspaces(pick("NEURALDRAFT_API_KEYS", "NEURAL_DRAFT_API_KEYS"));
+  const names = Object.keys(workspaces);
+  const wanted = pick("NEURALDRAFT_WORKSPACE", "NEURAL_DRAFT_WORKSPACE");
+  const single = pick("NEURALDRAFT_API_KEY", "NEURAL_DRAFT_API_KEY");
+  const activeWorkspace = wanted && workspaces[wanted] ? wanted : !single && names.length ? names[0] : undefined;
+
   const candidate = {
-    apiKey: pick("NEURALDRAFT_API_KEY", "NEURAL_DRAFT_API_KEY"),
+    workspaces,
+    activeWorkspace,
+    apiKey: activeWorkspace ? workspaces[activeWorkspace] : single,
     apiUrl: pick("NEURALDRAFT_API_URL", "NEURAL_DRAFT_API_URL"),
     projectId: pick("NEURALDRAFT_PROJECT_ID", "NEURAL_DRAFT_PROJECT_ID"),
     displayName: pick("NEURALDRAFT_DISPLAY_NAME", "NEURAL_DRAFT_DISPLAY_NAME"),
@@ -67,7 +82,8 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
         "",
         issues,
         "",
-        "Set NEURALDRAFT_API_KEY in your MCP client config (Claude Code, Cursor, Continue, etc.).",
+        "Set NEURALDRAFT_API_KEY in your MCP client config (Claude Code, Cursor, Continue, etc.),",
+        "or NEURALDRAFT_API_KEYS=\"client-a=ndsk_live_…,client-b=ndsk_live_…\" for several workspaces.",
         "Example for Claude Code (~/.config/claude-code/mcp.json):",
         "",
         '  {',
@@ -83,4 +99,34 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     );
   }
   return parsed.data;
+}
+
+/**
+ * NEURALDRAFT_API_KEYS: `name=key,name2=key2` (or a JSON object {"name": "key"}).
+ * Names are free text you choose (e.g. the client's name); keys are per-workspace.
+ */
+export function parseWorkspaces(raw: string | undefined): Record<string, string> {
+  if (!raw || raw.trim() === "") return {};
+  const text = raw.trim();
+  if (text.startsWith("{")) {
+    try {
+      const obj = JSON.parse(text) as Record<string, unknown>;
+      return Object.fromEntries(
+        Object.entries(obj)
+          .filter(([, v]) => typeof v === "string")
+          .map(([k, v]) => [k.trim(), String(v).trim()]),
+      );
+    } catch {
+      throw new Error("NEURALDRAFT_API_KEYS is not valid JSON.");
+    }
+  }
+  const out: Record<string, string> = {};
+  for (const part of text.split(/[,\n]/)) {
+    const i = part.indexOf("=");
+    if (i <= 0) continue;
+    const name = part.slice(0, i).trim();
+    const key = part.slice(i + 1).trim();
+    if (name && key) out[name] = key;
+  }
+  return out;
 }

@@ -101,12 +101,34 @@ The server reads two environment variables (set by your MCP client config — ne
 
 | Variable | Required | Default | Notes |
 |---|---|---|---|
-| `NEURALDRAFT_API_KEY` | yes | — | Project API key. Format: `ndsk_live_…` or `ndsk_test_…` |
+| `NEURALDRAFT_API_KEY` | yes (or `NEURALDRAFT_API_KEYS`) | — | Project API key. Format: `ndsk_live_…` or `ndsk_test_…` |
+| `NEURALDRAFT_API_KEYS` | no | — | Several workspaces in one server (agencies): `client-a=ndsk_live_…,client-b=ndsk_live_…` or a JSON object. Use `list_workspaces` / `switch_workspace`. |
+| `NEURALDRAFT_WORKSPACE` | no | first in `NEURALDRAFT_API_KEYS` | Which of them is active at start. |
 | `NEURALDRAFT_API_URL` | no | `https://api.neuraldraft.io/v1` | Override the API base. Useful for staging or local dev. |
 | `NEURALDRAFT_PROJECT_ID` | no | (derived from key) | Override when one key spans multiple projects. |
 | `NEURALDRAFT_DISPLAY_NAME` | no | — | Friendly name shown in your IDE's MCP list when you run multiple projects. |
 
 `NEURAL_DRAFT_*` (with underscore) is also accepted as an alias for any of the above.
+
+## Agencies: several client workspaces
+
+Each client gets its own Neural Draft workspace, and each workspace has its own API key (client admin → Settings → API keys). Put them all in one server:
+
+```json
+{
+  "mcpServers": {
+    "neuraldraft": {
+      "command": "npx",
+      "args": ["-y", "@neuraldraft/mcp"],
+      "env": {
+        "NEURALDRAFT_API_KEYS": "villa-lavanda=ndsk_live_…,linden-bakery=ndsk_live_…"
+      }
+    }
+  }
+}
+```
+
+`list_workspaces` shows them (and which is active); `switch_workspace` changes the active one, and every other tool acts on the active workspace. A key only ever reaches its own workspace.
 
 ## What it exposes
 

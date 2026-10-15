@@ -54,7 +54,10 @@ export function registerFindWorkspacesTool(
               type: "text",
               text:
                 lines.length === 0
-                  ? `No workspaces found for ${email}.`
+                  ? `No workspaces found for ${email} by email lookup (it only lists accounts you can sign in to).` +
+                    (Object.keys(ctx.config.workspaces ?? {}).length
+                      ? ` This server is configured for: ${Object.keys(ctx.config.workspaces).join(", ")} (see list_workspaces).`
+                      : " To work with several workspaces here, set NEURALDRAFT_API_KEYS and use list_workspaces / switch_workspace.")
                   : `${lines.length} workspace(s) for ${email}:\n${lines.join("\n")}`,
             },
           ],

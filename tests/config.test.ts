@@ -44,4 +44,26 @@ describe("loadConfig", () => {
     } as NodeJS.ProcessEnv);
     expect(cfg.apiKey.startsWith("ndsk_test_")).toBe(true);
   });
+
+  it("reads several workspaces from NEURALDRAFT_API_KEYS", () => {
+    const cfg = loadConfig({
+      NEURALDRAFT_API_KEYS: "villa=ndsk_live_aaaaaaaaaaaaaaaaaaaaaaaa, bakery=ndsk_live_bbbbbbbbbbbbbbbbbbbbbbbb",
+    } as NodeJS.ProcessEnv);
+    expect(Object.keys(cfg.workspaces)).toEqual(["villa", "bakery"]);
+    expect(cfg.activeWorkspace).toBe("villa");
+    expect(cfg.apiKey).toBe("ndsk_live_aaaaaaaaaaaaaaaaaaaaaaaa");
+  });
+
+  it("NEURALDRAFT_WORKSPACE picks the active one; JSON works too", () => {
+    const cfg = loadConfig({
+      NEURALDRAFT_API_KEYS: '{"villa":"ndsk_live_aaaaaaaaaaaaaaaaaaaaaaaa","bakery":"ndsk_live_bbbbbbbbbbbbbbbbbbbbbbbb"}',
+      NEURALDRAFT_WORKSPACE: "bakery",
+    } as NodeJS.ProcessEnv);
+    expect(cfg.activeWorkspace).toBe("bakery");
+    expect(cfg.apiKey).toBe("ndsk_live_bbbbbbbbbbbbbbbbbbbbbbbb");
+  });
+
+  it("rejects a malformed key in NEURALDRAFT_API_KEYS", () => {
+    expect(() => loadConfig({ NEURALDRAFT_API_KEYS: "villa=nope" } as NodeJS.ProcessEnv)).toThrow(/NEURALDRAFT_API_KEYS|Invalid/);
+  });
 });

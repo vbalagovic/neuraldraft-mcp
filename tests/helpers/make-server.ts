@@ -9,6 +9,8 @@ const DEFAULT_TEST_CONFIG: Config = {
   projectId: undefined,
   displayName: undefined,
   userAgent: "@neuraldraft/mcp/test",
+  workspaces: {},
+  activeWorkspace: undefined,
 };
 
 export interface TestServerHandle {
