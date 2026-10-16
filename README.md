@@ -1,78 +1,94 @@
-# @neuraldraft/mcp
+# Neural Draft MCP server (`@neuraldraft/mcp`)
 
-> Make AI-built sites real businesses. Plug Neural Draft's CMS, blog, social, booking, and commerce APIs into Claude Code, Cursor, Continue, and any other MCP client.
+> The backend for sites built with AI: CMS, blog, bookings, forms, shop and social, one database per client. Your coding assistant wires the CMS while it builds; clients edit in a web editor or through Claude.
 
 [![npm version](https://img.shields.io/npm/v/@neuraldraft/mcp.svg)](https://www.npmjs.com/package/@neuraldraft/mcp)
 [![npm downloads](https://img.shields.io/npm/dw/@neuraldraft/mcp.svg)](https://www.npmjs.com/package/@neuraldraft/mcp)
+[![MCP Registry](https://img.shields.io/badge/MCP_Registry-io.github.vbalagovic%2Fneuraldraft--mcp-7c3aed.svg)](https://registry.modelcontextprotocol.io/v0/servers?search=io.github.vbalagovic/neuraldraft-mcp)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![MCP Registry](https://img.shields.io/badge/MCP-registry-7c3aed.svg)](https://registry.modelcontextprotocol.io)
+[![Docs](https://img.shields.io/badge/docs-docs.neuraldraft.io-0f172a.svg)](https://docs.neuraldraft.io/mcp/overview)
 
-## What it does
+`@neuraldraft/mcp` is a [Model Context Protocol](https://modelcontextprotocol.io) server (stdio, MIT) for [Neural Draft](https://neuraldraft.io). Add it to Claude Code, Cursor, Codex or VS Code with a workspace API key, and while your assistant builds a client's site it can:
 
-`@neuraldraft/mcp` is a [Model Context Protocol](https://modelcontextprotocol.io) server that gives AI coding tools first-class access to the [Neural Draft](https://neuraldraft.io) backend platform. When your AI assistant builds a site, it can:
+- read the brand (voice, audience, colours, fonts, languages) before it writes a line;
+- create pages with SEO meta, and register editable content keys and components, so the client can change words and pictures in the Neural Draft editor without you;
+- add a page or sub-page to the hosted site in its own design, with a menu link;
+- set up bookable services, galleries and blog drafts, and read products, form submissions and newsletter sign-ups;
+- work across several client workspaces from one server (agencies).
 
-- read your project's brand context (voice, colors, fonts, audience)
-- register every section it generates as an editable component in your admin
-- create translation keys, kick off blog/image generation, list products, set up booking widgets
-- emit markup that's CMS-managed by default — no manual wiring
+Every client is its own Neural Draft workspace with its own Postgres database, API keys and team. A key only reaches the workspace it belongs to.
 
-## Demo
+![A Claude Code session driving Neural Draft over MCP](./assets/demo.gif)
 
-A real Claude Code session driving Neural Draft via MCP. One natural-language prompt creates 4 translation keys (EN + HR) and registers a hero image.
+## Install
 
-![MCP demo](./assets/demo.gif)
-
-[Watch the full MP4 →](./assets/demo.mp4)
-
-## Why it exists
-
-AI codegen tools (Lovable, Claude Code, v0, Bolt, Cursor) are excellent at building frontends. They're terrible at the bits that make a frontend a real business — multi-language CMS, blog pipelines, social scheduling, bookings, e-commerce. Neural Draft is the backend that handles those. This MCP server is the wire between the two: the AI tool generates code that uses Neural Draft correctly **by default**, because the conventions and tools are exposed as MCP context.
-
-The pitch: *"Build your site with Lovable. Run the actual business on Neural Draft."*
-
-## Quick install
-
-You need a Neural Draft project API key. Get one at [neuraldraft.io/dashboard/api-keys](https://neuraldraft.io/dashboard/api-keys). Test-mode keys (`ndsk_test_…`) work out of the box.
+You need Node 20+ and a workspace API key: in the Neural Draft admin, **Settings → For developers → API keys** (`ndsk_live_…`). Free plan included, no credit card.
 
 ### Claude Code
 
-`~/.config/claude-code/mcp.json`:
+```bash
+claude mcp add neuraldraft-dev -e NEURALDRAFT_API_KEY=ndsk_live_... -- npx -y @neuraldraft/mcp
+```
+
+Add `--scope project` to write it to the project's `.mcp.json`, and keep the key out of git with an env reference:
 
 ```json
 {
   "mcpServers": {
-    "neuraldraft": {
+    "neuraldraft-dev": {
       "command": "npx",
       "args": ["-y", "@neuraldraft/mcp"],
-      "env": {
-        "NEURALDRAFT_API_KEY": "ndsk_live_xxxxxxxxxxxxxxxxxxxxxxxx"
-      }
+      "env": { "NEURALDRAFT_API_KEY": "${NEURALDRAFT_API_KEY}" }
     }
   }
 }
 ```
 
-Or use the CLI:
-
-```bash
-claude mcp add neuraldraft \
-  -e NEURALDRAFT_API_KEY=ndsk_live_xxx \
-  -- npx -y @neuraldraft/mcp
-```
+Run `/mcp` to check it's connected.
 
 ### Cursor
 
-`.cursor/mcp.json` (workspace) or `~/.cursor/mcp.json` (global):
+`.cursor/mcp.json` (project) or `~/.cursor/mcp.json` (global):
 
 ```json
 {
   "mcpServers": {
-    "neuraldraft": {
+    "neuraldraft-dev": {
       "command": "npx",
       "args": ["-y", "@neuraldraft/mcp"],
-      "env": {
-        "NEURALDRAFT_API_KEY": "ndsk_live_xxxxxxxxxxxxxxxxxxxxxxxx"
-      }
+      "env": { "NEURALDRAFT_API_KEY": "ndsk_live_..." }
+    }
+  }
+}
+```
+
+### Codex
+
+```bash
+codex mcp add neuraldraft-dev --env NEURALDRAFT_API_KEY=ndsk_live_... -- npx -y @neuraldraft/mcp
+```
+
+or `~/.codex/config.toml`:
+
+```toml
+[mcp_servers.neuraldraft-dev]
+command = "npx"
+args = ["-y", "@neuraldraft/mcp"]
+env = { NEURALDRAFT_API_KEY = "ndsk_live_..." }
+```
+
+### VS Code
+
+`.vscode/mcp.json`:
+
+```json
+{
+  "servers": {
+    "neuraldraft-dev": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@neuraldraft/mcp"],
+      "env": { "NEURALDRAFT_API_KEY": "ndsk_live_..." }
     }
   }
 }
@@ -83,177 +99,131 @@ claude mcp add neuraldraft \
 `~/.continue/config.yaml`:
 
 ```yaml
-experimental:
-  modelContextProtocolServers:
-    - transport:
-        type: stdio
-        command: npx
-        args: ["-y", "@neuraldraft/mcp"]
-      env:
-        NEURALDRAFT_API_KEY: ndsk_live_xxxxxxxxxxxxxxxxxxxxxxxx
+mcpServers:
+  - name: neuraldraft-dev
+    command: npx
+    args: ["-y", "@neuraldraft/mcp"]
+    env:
+      NEURALDRAFT_API_KEY: ndsk_live_...
 ```
 
-Then restart your editor. You should see `neuraldraft` listed under MCP servers, with resources, tools, and prompts available.
+## Several client workspaces (agencies)
 
-## Auth setup
-
-The server reads two environment variables (set by your MCP client config — never commit them):
-
-| Variable | Required | Default | Notes |
-|---|---|---|---|
-| `NEURALDRAFT_API_KEY` | yes (or `NEURALDRAFT_API_KEYS`) | — | Project API key. Format: `ndsk_live_…` or `ndsk_test_…` |
-| `NEURALDRAFT_API_KEYS` | no | — | Several workspaces in one server (agencies): `client-a=ndsk_live_…,client-b=ndsk_live_…` or a JSON object. Use `list_workspaces` / `switch_workspace`. |
-| `NEURALDRAFT_WORKSPACE` | no | first in `NEURALDRAFT_API_KEYS` | Which of them is active at start. |
-| `NEURALDRAFT_API_URL` | no | `https://api.neuraldraft.io/v1` | Override the API base. Useful for staging or local dev. |
-| `NEURALDRAFT_PROJECT_ID` | no | (derived from key) | Override when one key spans multiple projects. |
-| `NEURALDRAFT_DISPLAY_NAME` | no | — | Friendly name shown in your IDE's MCP list when you run multiple projects. |
-
-`NEURAL_DRAFT_*` (with underscore) is also accepted as an alias for any of the above.
-
-## Agencies: several client workspaces
-
-Each client gets its own Neural Draft workspace, and each workspace has its own API key (client admin → Settings → API keys). Put them all in one server:
+Each client has its own workspace and its own key. Put them all in one server and switch between them with `list_workspaces` / `switch_workspace`; every other tool acts on the active workspace.
 
 ```json
 {
   "mcpServers": {
-    "neuraldraft": {
+    "neuraldraft-dev": {
       "command": "npx",
       "args": ["-y", "@neuraldraft/mcp"],
       "env": {
-        "NEURALDRAFT_API_KEYS": "villa-lavanda=ndsk_live_…,linden-bakery=ndsk_live_…"
+        "NEURALDRAFT_API_KEYS": "linden-bakery=ndsk_live_...,villa-lavanda=ndsk_live_...",
+        "NEURALDRAFT_WORKSPACE": "linden-bakery"
       }
     }
   }
 }
 ```
 
-`list_workspaces` shows them (and which is active); `switch_workspace` changes the active one, and every other tool acts on the active workspace. A key only ever reaches its own workspace.
+`NEURALDRAFT_API_KEYS` also accepts a JSON object (`{"linden-bakery":"ndsk_live_..."}`). See [Several workspaces](https://docs.neuraldraft.io/mcp/multi-workspace).
 
-## What it exposes
+## Environment variables
 
-### Resources (read-only context)
+| Variable | Required | Notes |
+|---|---|---|
+| `NEURALDRAFT_API_KEY` | one of these two | One workspace key, `ndsk_live_…` |
+| `NEURALDRAFT_API_KEYS` | one of these two | Several workspaces: `name=key,name=key` or a JSON object |
+| `NEURALDRAFT_WORKSPACE` | no | Which of `NEURALDRAFT_API_KEYS` is active at start (default: the first) |
+| `NEURALDRAFT_API_URL` | no | Default `https://api.neuraldraft.io/v1` |
+| `NEURALDRAFT_PROJECT_ID` | no | Override when one key spans several projects |
+| `NEURALDRAFT_DISPLAY_NAME` | no | Friendly name in your client's server list |
+
+`NEURAL_DRAFT_*` spellings are accepted as aliases. A missing or malformed key fails at start with a message showing a working config. Never commit keys.
+
+## Remote / hosted connector
+
+Neural Draft also runs a hosted remote MCP server, no API key and nothing to install:
+
+```
+https://neuraldraft.io/mcp
+```
+
+Streamable HTTP with OAuth sign-in (Google or an emailed code). It works in Claude, ChatGPT, Codex, Claude Code, Cursor and VS Code, and it adds what this package doesn't do: deploying a build (`deploy_site`, `rollback_site`), custom domains, editing live site texts, bookings and availability, the blog, social scheduling, and finished ads and reels crafted by Batchcraft for your brand. We don't offer AI image or video creation. We craft finished static ads and reels for your brand.
+
+```bash
+# Claude Code
+claude mcp add --transport http neuraldraft https://neuraldraft.io/mcp
+# Codex
+codex mcp add neuraldraft --url https://neuraldraft.io/mcp && codex mcp login neuraldraft
+```
+
+Claude: **Customize → Connectors → Add custom connector**. ChatGPT: **Settings → Apps → Add custom MCP server**. Paste the URL and sign in. Setup for every app: [Hosted connector](https://docs.neuraldraft.io/guides/hosted-connector).
+
+| | Hosted connector | `@neuraldraft/mcp` (this repo) |
+|---|---|---|
+| Auth | Sign-in (OAuth) | API key per workspace |
+| Runs | Remote, Streamable HTTP | Locally via `npx` (stdio) |
+| Best for | Hosting and deploying the site, client edits, domains, blog, bookings, socials | Wiring a codebase: brand, content keys, components, pages, galleries |
+| Several clients | Tick workspaces at sign-in | `NEURALDRAFT_API_KEYS` |
+
+Developers often add both to Claude Code or Codex.
+
+## Tools
+
+| Group | Tools |
+|---|---|
+| Workspaces | `list_workspaces`, `switch_workspace`, `find_workspaces` |
+| Brand | `get_brand`, `update_brand` |
+| Content | `create_translation_keys`, `get_content`, `list_content`, `delete_content`, `register_component`, `delete_component` |
+| Pages | `create_page`, `list_pages`, `get_page`, `update_page`, `delete_page`, `add_site_page` |
+| Images and galleries | `list_images`, `get_image`, `register_image`, `replace_image` (by URL), `delete_image`, `list_galleries`, `get_gallery`, `create_gallery`, `update_gallery`, `delete_gallery` |
+| Blog | `generate_blog_post` (a draft in the brand's voice), `list_blog_posts`, `get_blog_post`, `update_blog_post` |
+| Bookings and shop | `create_bookable_service`, `setup_booking_widget`, `list_products`, `get_product` |
+| Forms | `list_newsletter_subscribers`, `list_contact_form_submissions` |
+| Account | `get_usage`, `get_job` |
+
+`generate_image` and `generate_video` are still registered for older clients but are retired: the API answers them with `410 media_generation_moved`.
+
+### Resources
 
 | URI | What |
 |---|---|
-| `brand://current` | Project brand: voice, audience, content tone, colors, fonts, logo, target topics |
-| `schema://blog-post` | JSON schema for blog post API responses |
-| `schema://product` | JSON schema for product API responses |
-| `schema://booking` | JSON schema for bookable services + bookings |
-| `conventions://editable-html` | The `data-translate` / `data-image-key` markup spec the AI should follow |
-| `conventions://api-usage` | Auth, errors, rate limits, idempotency, async/job patterns |
+| `brand://current` | Voice, audience, colours, fonts, languages. Read before generating UI. |
+| `schema://blog-post` | Blog post response shape |
+| `schema://product` | Product and variant shape |
+| `schema://booking` | Services, bookings, availability |
+| `conventions://editable-html` | The `data-translate` / `data-image-key` markup rules |
+| `conventions://api-usage` | Auth, errors, rate limits, jobs |
 
-### Tools (functions the AI can call)
+### Prompts
 
-| Tool | Description |
+| Prompt | What it does |
 |---|---|
-| `get_brand` | Read the project's brand context (industry, audience, voice, colors, fonts) |
-| `update_brand` | Patch brand fields (voice, audience, colors, fonts, languages) |
-| `register_component` | Register generated HTML as editable in the admin. Call once per section. |
-| `generate_blog_post` | Kick off the AI blog pipeline (research → draft → image → SEO → translations) |
-| `get_blog_post` | Fetch a single blog post by id or slug (locale-aware) |
-| `list_blog_posts` | Paginated list with status / language / category / tag filters |
-| `update_blog_post` | Patch a post's title / body / SEO meta / status |
-| `generate_image` | Brand-consistent image generation (returns a Job) |
-| `list_images` | List registered image keys |
-| `get_image` | Resolve a single registered image URL by key |
-| `register_image` | Bind a direct image URL to a stable key (no AI) |
-| `replace_image` | Swap an image by URL or AI regeneration |
-| `delete_image` | Remove an image-key registration |
-| `generate_video` | Brand-aware video clip — budget (40 cr) or premium (300 cr) tier |
-| `create_page` | Create a TenantPage with per-page SEO meta |
-| `list_pages` | Paginated list of pages |
-| `get_page` | Fetch a page by id or slug (full SEO meta) |
-| `update_page` | Patch page fields and / or SEO meta (merge semantics) |
-| `add_site_page` | Add a page or sub-page to the hosted site in its own design (copy of one of its pages, or empty), with an optional menu link; publish, take offline or delete it |
-| `create_translation_keys` | Bulk-create translation keys with default values |
-| `get_content` | Read a single translation key (resolved value + all_locales) |
-| `list_content` | Paginated key list with search / scope / language filters |
-| `list_products` | List the project's products (paginated) |
-| `get_product` | Fetch a single product by id or slug |
-| `create_bookable_service` | Create a bookable service (time-slot or date-range) |
-| `setup_booking_widget` | Get the embeddable booking widget HTML for a service |
-| `list_newsletter_subscribers` | List captured newsletter subscribers |
-| `list_contact_form_submissions` | List captured contact-form submissions |
-| `get_usage` | Current credit balance, monthly limit, reset date, breakdown |
-| `get_job` | Poll an async job (blog/image/video generation) for completion |
-| `find_workspaces` | List Neural Draft workspaces an email is registered against (calls the central host, not the per-tenant API) |
+| `/scaffold-marketing-site` | A full marketing site wired to Neural Draft (brand, editable keys, components) |
+| `/scaffold-blog-page` | A `/blog` index and post page in an existing project |
+| `/connect-existing-site` | Make an existing static site editable through Neural Draft |
 
-### Prompts (slash commands)
+Full reference: [Tools, resources and prompts](https://docs.neuraldraft.io/mcp/tools-and-resources).
 
-| Slash command | What it does |
-|---|---|
-| `/scaffold-marketing-site` | Generate a complete marketing site (hero, features, testimonials, pricing, CTA, footer) wired through Neural Draft |
-| `/scaffold-blog-page` | Drop a `/blog` and `/blog/[slug]` page into an existing project |
-| `/connect-existing-site` | Walk a developer through migrating an existing static site to Neural Draft |
+## Try it
 
-## Examples
+> Read brand://current, build a hero and a services section for this site with editable keys, and register them with Neural Draft.
 
-### 1. "Build me a blog page"
+The assistant reads the brand, writes markup with `data-translate` and `data-image-key`, creates the keys and registers the sections, so they show up in the client's admin as editable.
 
-```
-You: /scaffold-blog-page framework=next language=en
+## Docs
 
-Claude: Reading brand://current… (voice: warm and grounded; audience: yoga-curious adults)
-Claude: Reading schema://blog-post… (got it — id, slug, title, content, featured_image, tags, …)
-Claude: Reading conventions://api-usage… (auth via Bearer ndsk_…, rate limit 60/min, RFC 7807 errors)
-
-Claude: Generating /lib/neuraldraft.ts…
-Claude: Generating /app/blog/page.tsx (index)…
-Claude: Calling register_component { intent: 'blog_index_card', html: ... }
-Claude: → cmp_2NgB7hKqL (edit at https://app.neuraldraft.io/c/cmp_2NgB7hKqL)
-
-Claude: Generating /app/blog/[slug]/page.tsx…
-Claude: Calling register_component { intent: 'blog_post_meta_block', html: ... }
-Claude: → cmp_2NgC9qPLq (edit at https://app.neuraldraft.io/c/cmp_2NgC9qPLq)
-
-Claude: Done. 2 components registered. Open the editor URLs to change copy.
-```
-
-### 2. "Add a hero with my brand colors"
-
-```
-You: Build a hero section that says "Find your calm" with a CTA to /book.
-
-Claude: Reading brand://current… (deep sage #3F6B5C primary, linen #E8DCC4 secondary, Fraunces / Inter)
-Claude: Reading conventions://editable-html… (every text node needs data-translate)
-
-Claude: Calling generate_image { prompt: "Serene yoga studio at dawn, sage and linen tones, no people", aspect_ratio: "16:9", key: "hero.background" }
-Claude: → job_img_7K9L (poll with get_job)
-
-Claude: Drafting <section class="hero">…</section> with data-translate="hero.headline" / "hero.subhead" / "hero.cta"
-Claude: Calling register_component { intent: "marketing_hero", page_slug: "home", html: ... }
-Claude: → cmp_2NgD9KqL — translation keys created: hero.headline, hero.subhead, hero.cta.
-
-Claude: I'll poll the image job…
-Claude: Calling get_job { id: "job_img_7K9L" } → status: completed, url: https://cdn.neuraldraft.io/.../hero-bg.jpg
-
-Claude: Done. The hero is in your admin (https://app.neuraldraft.io/c/cmp_2NgD9KqL) — you can change the headline, swap the image, or recolor without touching code.
-```
-
-### 3. "Set up a storefront for the products I already have"
-
-```
-You: I have 14 products in my Neural Draft project. Scaffold a /shop page.
-
-Claude: Calling list_products { page_size: 20 } → 14 products returned (page 1/1).
-Claude: Reading schema://product… (id, name, price_cents, currency, status, images, …)
-Claude: Reading brand://current… (warm voice; primary #3F6B5C)
-Claude: Reading conventions://editable-html…
-
-Claude: Generating /app/shop/page.tsx with a grid of 14 ProductCard components.
-Claude: Calling register_component { intent: "product_grid_header", page_slug: "shop", html: ... } → cmp_2NgE
-Claude: Generating /app/shop/[slug]/page.tsx with get_product fetch + buy-button widget.
-Claude: Calling register_component { intent: "product_detail_layout", page_slug: "shop_detail", html: ... } → cmp_2NgF
-
-Claude: Done. The grid auto-renders your 14 products (real names, prices, images). Edit the page header in admin: https://app.neuraldraft.io/c/cmp_2NgE.
-```
+- [MCP overview](https://docs.neuraldraft.io/mcp/overview) and [setup](https://docs.neuraldraft.io/mcp/setup)
+- [Editable markup](https://docs.neuraldraft.io/guides/editable-markup)
+- [REST API](https://docs.neuraldraft.io/introduction) and the TypeScript SDK [`@neuraldraft/sdk`](https://github.com/vbalagovic/neuraldraft-sdk)
+- [For developers and agencies](https://neuraldraft.io/developers)
 
 ## Local development
 
 ```bash
 git clone https://github.com/vbalagovic/neuraldraft-mcp.git
-cd mcp
+cd neuraldraft-mcp
 npm install
 npm run lint    # tsc --noEmit
 npm test
@@ -263,42 +233,21 @@ npm run build   # → dist/
 Run against a local API:
 
 ```bash
-NEURALDRAFT_API_KEY=ndsk_test_xxx \
-NEURALDRAFT_API_URL=http://localhost:8080/v1 \
-npm run dev
+NEURALDRAFT_API_KEY=ndsk_test_xxx NEURALDRAFT_API_URL=http://localhost:8080/v1 npm run dev
 ```
 
-Inspect interactively with the official MCP Inspector:
+Inspect with the MCP Inspector: `npx @modelcontextprotocol/inspector node dist/index.js`.
 
-```bash
-npx @modelcontextprotocol/inspector node dist/index.js
-```
-
-(Or `npx @modelcontextprotocol/inspector --cli node dist/index.js --tool register_component --args '{"html":"<h1>Hi</h1>","intent":"hero"}'` for one-shot CLI calls.)
-
-## Architecture
-
-This server is a thin wrapper over the Neural Draft Project API v1. Every tool maps to one (or a handful of) REST calls; resources are either constants (schemas, conventions docs) or cached reads (`brand://current`). The full API spec lives at [openapi.yaml](https://github.com/vbalagovic/neuraldraft-mcp/blob/main/openapi.yaml) in the platform repo.
-
-Stdio is the only transport in v0.x — every current AI coding tool spawns local processes. Streamable HTTP transport will arrive when there's hosted multi-tenant demand.
+The server is a thin wrapper over the Neural Draft Project API v1: every tool maps to one or a few REST calls. It never writes to stdout at runtime (stdio transport).
 
 ## Contributing
 
-Issues and PRs welcome. See [open issues](https://github.com/vbalagovic/neuraldraft-mcp/issues) for places to start. PRs should:
-
-- Keep tests at ≥ 80% line coverage on `src/`
-- Use the existing `register*` helper pattern when adding tools/resources
-- Never write to stdout in server runtime code (stdio mode breaks)
-- Update the README's "What it exposes" table for any new surface
-
-## Changelog
-
-See [CHANGELOG.md](./CHANGELOG.md) (TBD — this is the first public release).
+Issues and PRs welcome. Keep tests passing (`npm test`), use the existing `register*` helper pattern for new tools, and update the tables above for any new surface.
 
 ## License
 
-[MIT](./LICENSE) — open-source from day one.
+[MIT](./LICENSE)
 
 ---
 
-Built by [Neural Draft](https://neuraldraft.io). Questions? developers@neuraldraft.io.
+Built by [Neural Draft](https://neuraldraft.io). Questions: info@neuraldraft.io.
