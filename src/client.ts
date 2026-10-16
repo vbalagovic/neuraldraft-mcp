@@ -397,6 +397,20 @@ export class NeuralDraftClient {
     return this.request<Page>("PATCH", `/pages/${encodeURIComponent(String(id))}`, input);
   }
 
+  // ---- Hosted site pages (own design) ----
+
+  createSitePage(input: Record<string, unknown>): Promise<SitePage> {
+    return this.request<SitePage>("POST", "/site/pages", input);
+  }
+
+  updateSitePage(path: string, input: Record<string, unknown>): Promise<SitePage> {
+    return this.request<SitePage>("PATCH", `/site/pages/${sitePath(path)}`, input);
+  }
+
+  deleteSitePage(path: string): Promise<{ deleted: boolean; path: string }> {
+    return this.request<{ deleted: boolean; path: string }>("DELETE", `/site/pages/${sitePath(path)}`);
+  }
+
   /**
    * DELETE /v1/pages/{id} — by default soft-retires the page (sets is_active=false).
    * Pass `force=true` for a hard delete. Refuses to delete the homepage.
@@ -688,4 +702,24 @@ export class ApiError extends Error {
     this.body = body;
     this.path = path;
   }
+}
+
+/** A page of the hosted site (GET/POST /v1/site/pages). */
+export interface SitePage {
+  kind: string;
+  id?: number;
+  title: string;
+  path: string;
+  url: string;
+  published: boolean;
+  in_menu?: boolean;
+  template?: string | null;
+  content?: string | null;
+  deletable: boolean;
+  edit_url?: string;
+}
+
+/** "/services/wedding-cakes" → "services/wedding-cakes" (each segment encoded). */
+function sitePath(path: string): string {
+  return path.replace(/^\/+|\/+$/g, "").split("/").map(encodeURIComponent).join("/");
 }

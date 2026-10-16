@@ -33,6 +33,7 @@ import { registerCreatePageTool } from "./tools/create-page.js";
 import { registerListPagesTool } from "./tools/list-pages.js";
 import { registerGetPageTool } from "./tools/get-page.js";
 import { registerUpdatePageTool } from "./tools/update-page.js";
+import { registerAddSitePageTool } from "./tools/add-site-page.js";
 import { registerGenerateVideoTool } from "./tools/generate-video.js";
 import { registerCreateBookableServiceTool } from "./tools/create-bookable-service.js";
 import { registerListNewsletterSubscribersTool } from "./tools/list-newsletter-subscribers.js";
@@ -137,6 +138,7 @@ export function createMcpServer({ config, client }: BuildServerOptions): McpServ
   registerListPagesTool(server, ctx);
   registerGetPageTool(server, ctx);
   registerUpdatePageTool(server, ctx);
+  registerAddSitePageTool(server, ctx);
   registerGenerateVideoTool(server, ctx);
   registerCreateBookableServiceTool(server, ctx);
   registerListNewsletterSubscribersTool(server, ctx);

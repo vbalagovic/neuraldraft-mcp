@@ -165,6 +165,7 @@ Each client gets its own Neural Draft workspace, and each workspace has its own 
 | `list_pages` | Paginated list of pages |
 | `get_page` | Fetch a page by id or slug (full SEO meta) |
 | `update_page` | Patch page fields and / or SEO meta (merge semantics) |
+| `add_site_page` | Add a page or sub-page to the hosted site in its own design (copy of one of its pages, or empty), with an optional menu link; publish, take offline or delete it |
 | `create_translation_keys` | Bulk-create translation keys with default values |
 | `get_content` | Read a single translation key (resolved value + all_locales) |
 | `list_content` | Paginated key list with search / scope / language filters |
