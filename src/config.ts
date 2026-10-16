@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { VERSION } from "./version.js";
 
 /**
  * The API key format mirrors Stripe-style live/test prefixes:
@@ -32,7 +33,7 @@ const ConfigSchema = z.object({
    */
   workspaces: z.record(z.string().regex(API_KEY_REGEX, { message: "Invalid key in NEURALDRAFT_API_KEYS (expected ndsk_live_… / ndsk_test_…)." })).default({}),
   activeWorkspace: z.string().optional(),
-  userAgent: z.string().default(`@neuraldraft/mcp/${process.env.npm_package_version ?? "0.1.0"}`),
+  userAgent: z.string().default(`@neuraldraft/mcp/${VERSION}`),
 });
 
 export type Config = z.infer<typeof ConfigSchema>;

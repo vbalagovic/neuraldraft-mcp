@@ -1,6 +1,7 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { NeuralDraftClient } from "./client.js";
 import type { Config } from "./config.js";
+import { VERSION } from "./version.js";
 
 import { registerBrandResource } from "./resources/brand.js";
 import { registerSchemaResources } from "./resources/schemas.js";
@@ -80,7 +81,7 @@ export function createMcpServer({ config, client }: BuildServerOptions): McpServ
     : "neuraldraft";
 
   const server = new McpServer(
-    { name: displayName, version: "0.3.0" },
+    { name: displayName, version: VERSION },
     {
       // Top-level instructions are inserted into the AI client's system
       // prompt verbatim. Keep terse — every word costs context tokens.
